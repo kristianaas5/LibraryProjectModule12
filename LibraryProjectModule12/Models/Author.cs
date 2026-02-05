@@ -1,0 +1,22 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace LibraryProjectModule12.Models
+{
+    public class Author
+    {
+        public int Id { get; set; }
+
+        [Required, MaxLength(128)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required, MaxLength(128)]
+        public string LastName { get; set; } = string.Empty;
+
+        [MaxLength(128)]
+        public string? Country { get; set; }
+
+        public bool IsDeleted { get; set; }
+
+        public ICollection<Book> Books { get; set; } = new List<Book>();
+    }
+}

@@ -1,0 +1,22 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace LibraryProjectModule12.Models
+{
+    public class Event
+    {
+        public int Id { get; set; }
+
+        [Required, MaxLength(256)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(2048)]
+        public string? Description { get; set; }
+
+        [DataType(DataType.DateTime)]
+        public DateTime Date { get; set; }
+
+        public bool IsDeleted { get; set; }
+
+        public ICollection<EventUser> EventUsers { get; set; } = new List<EventUser>();
+    }
+}
