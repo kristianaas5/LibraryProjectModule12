@@ -6,27 +6,34 @@ namespace LibraryProjectModule12.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
-
         public IActionResult Index()
         {
-            return View();
+            // ПРОВЕРКА: Потребителят влязъл ли е?
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                // Невлезли потребители (Guests)
+                return View("GuestIndex");
+            }
+
+            // ПРОВЕРКА: Потребителят Admin ли е?
+            if (User.IsInRole("Admin"))
+            {
+                // Admin потребители
+                return View("AdminIndex");
+            }
+
+            // Обикновени потребители (User роля)
+            return View("UserIndex");
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
+        /// <summary>
+        /// GET: /Home/Error
+        /// Страница за грешки
+        /// </summary>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View();
         }
     }
 }

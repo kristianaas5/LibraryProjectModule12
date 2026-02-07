@@ -8,14 +8,17 @@ namespace LibraryProjectModule12.Models
 
         [Required]
         [MaxLength(128)]
+        [Display(Name = "First Name")]
         public string Name { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(128)]
+        [Display(Name = "Last Name")]
         public string LastName { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.Date)]
+        [Display(Name = "Date of Registration")]
         public DateTime DateRegistrated { get; set; }
 
         [Required]

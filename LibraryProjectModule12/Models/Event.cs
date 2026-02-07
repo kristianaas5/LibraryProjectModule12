@@ -9,14 +9,17 @@ namespace LibraryProjectModule12.Models
 
         [Required]
         [MaxLength(256)]
+        [Display(Name = "Event Name")]
         public string Name { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(2048)]
+        [Display(Name = "Event Description")]
         public string? Description { get; set; }
 
         [Required]
         [DataType(DataType.DateTime)]
+        [Display(Name = "Event Date and Time")]
         public DateTime Date { get; set; }
 
         [Required]

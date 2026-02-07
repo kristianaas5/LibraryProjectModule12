@@ -9,13 +9,16 @@ namespace LibraryProjectModule12.Models
 
         [Required]
         [MaxLength(128)]
+        [Display(Name = "First Name")]
         public string Name { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(128)]
+        [Display(Name = "Last Name")]
         public string LastName { get; set; } = string.Empty;
 
         [MaxLength(128)]
+        [Display(Name = "Country of Origin")]
         public string? Country { get; set; }
 
         [Required]

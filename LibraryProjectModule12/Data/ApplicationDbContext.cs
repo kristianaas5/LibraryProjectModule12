@@ -136,7 +136,6 @@ namespace LibraryProjectModule12.Data
                 entity.Property(u => u.DateRegistrated).IsRequired();
                 entity.HasQueryFilter(u => !u.IsDeleted);
             });
-            
         }
     }
 }

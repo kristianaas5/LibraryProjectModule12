@@ -10,17 +10,20 @@ namespace LibraryProjectModule12.Models
 
         [Required]
         [ForeignKey(nameof(User))]
+        [Display(Name = "User")]
         public string UserId { get; set; }
 
         public User? User { get; set; }
 
         [Required]
         [ForeignKey(nameof(Book))]
+        [Display(Name = "Book")]
         public int BookId { get; set; }
 
         public Book? Book { get; set; }
 
         [Required]
+        [Display(Name = "Shelf Type")]
         public ShelfType ShelfType { get; set; }
 
         [Required]
