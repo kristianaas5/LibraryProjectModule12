@@ -5,13 +5,16 @@ namespace LibraryProjectModule12.Models
 {
     public class Review
     {
+        [Required]
         public int Id { get; set; }
 
+        [Required]
         [ForeignKey(nameof(Library))]
         public int LibraryId { get; set; }
 
         public Library? Library { get; set; }
 
+        [Required]
         [Range(1, 5)]
         public int Rating { get; set; }
 
