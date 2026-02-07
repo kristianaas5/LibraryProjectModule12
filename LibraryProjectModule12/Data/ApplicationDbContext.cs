@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LibraryProjectModule12.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<User>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -129,7 +129,7 @@ namespace LibraryProjectModule12.Data
                 entity.HasQueryFilter(r => !r.IsDeleted);
             });
             // Configure User entity
-            builder.Entity<User>(entity =>
+            builder.Entity<ApplicationUser>(entity =>
             {
                 entity.Property(u => u.Name).IsRequired().HasMaxLength(128);
                 entity.Property(u => u.LastName).IsRequired().HasMaxLength(128);

@@ -10,14 +10,13 @@ namespace LibraryProjectModule12
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
                 {
                     // НАСТРОЙКИ ЗА ПАРОЛАТА
                     options.Password.RequireDigit = true;       
@@ -82,8 +81,9 @@ namespace LibraryProjectModule12
             app.UseHttpsRedirection();
             app.UseRouting();
 
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
+
 
             app.MapStaticAssets();
             app.MapControllerRoute(
@@ -99,7 +99,7 @@ namespace LibraryProjectModule12
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var userManager = services.GetRequiredService<UserManager<User>>();
+                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
                     await SeedData.Initialize(services, userManager, roleManager);
@@ -117,13 +117,13 @@ namespace LibraryProjectModule12
         {
             public static async Task Initialize(
                 IServiceProvider serviceProvider,
-                UserManager<User> userManager,
+                UserManager<ApplicationUser> userManager,
                 RoleManager<IdentityRole> roleManager)
             {
                 // =================
                 // СЪЗДАВАНЕ НА РОЛИ
                 // =================
-                string[] roleNames = { "Admin", "User" };
+                string[] roleNames = {"Admin", "User"};
 
                 foreach (var roleName in roleNames)
                 {
@@ -142,14 +142,14 @@ namespace LibraryProjectModule12
 
                 if (adminUser == null)
                 {
-                    var admin = new User
+                    var admin = new ApplicationUser
                     {
                         UserName = "Admin",
                         Email = adminEmail,
                         EmailConfirmed = true
                     };
 
-                    var result = await userManager.CreateAsync(admin, "admin123");
+                    var result = await userManager.CreateAsync(admin, "Admin123.");
 
                     if (result.Succeeded)
                     {

@@ -13,7 +13,7 @@ namespace LibraryProjectModule12.Models
         [Display(Name = "User")]
         public string UserId { get; set; }
 
-        public User? User { get; set; }
+        public ApplicationUser? User { get; set; }
 
         [Required]
         [ForeignKey(nameof(Book))]

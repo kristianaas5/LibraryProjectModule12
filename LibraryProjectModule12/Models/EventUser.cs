@@ -12,7 +12,7 @@ namespace LibraryProjectModule12.Models
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }
 
-        public User? User { get; set; }
+        public ApplicationUser? User { get; set; }
 
         [Required]
         [ForeignKey(nameof(Event))]

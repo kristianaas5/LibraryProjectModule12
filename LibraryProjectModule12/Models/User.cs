@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace LibraryProjectModule12.Models
 {
-    public class User : IdentityUser
+    public class ApplicationUser : IdentityUser
     {
 
         [Required]
