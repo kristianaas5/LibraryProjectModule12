@@ -1,0 +1,44 @@
+﻿@model LibraryProjectModule12.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+<! -- Тук използваме Bootstrap 5 класове за стилизиране на формата за регистрация -->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="text-center mb-4">Login</h2>
+
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-cyan">Login</button>
+            </div>
+        </form>
+
+        <div class="mt-3 text-center">
+            Don't have an account? <a asp-action="Register">Register here</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

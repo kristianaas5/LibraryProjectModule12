@@ -6,7 +6,7 @@ namespace LibraryProjectModule12.Models
     public class EventUser
     {
         [Required]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         [ForeignKey(nameof(User))]

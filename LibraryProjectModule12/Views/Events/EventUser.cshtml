@@ -1,0 +1,31 @@
+﻿@model LibraryProjectModule12.ViewModels.EventUserViewModel
+
+@{
+    ViewData["Title"] = "Submit participation";
+}
+<! -- Bootstrap форма за поръчка на билети за дадено събитие -->    
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="text-center mb-4">Submit participation</h2>
+
+        <div class="alert alert-info">
+            Event: <strong>@Model.Name</strong>
+        </div>
+
+        <form asp-action="EventUser" method="post">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="Name" type="hidden" />
+
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-cyan">Participate</button>
+                <a asp-action="All" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+<! -- Validation Scripts използваме за да активираме client-side валидация -->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

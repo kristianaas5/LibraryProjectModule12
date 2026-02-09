@@ -1,0 +1,43 @@
+﻿@model IEnumerable<LibraryProjectModule12.ViewModels.EventViewModel>
+
+@{
+    ViewData["Title"] = "My Events";
+}
+
+<h2 class="text-center mb-4">My Events</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You don't have any events yet.
+        <a asp-action="All">Browse events</a>
+    </div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int counter = 1;
+            }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@counter</td>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@item.Date.ToString("dd-MMM-yy HH:mm:ss")</td>
+                </tr>
+                counter++;
+            }
+        </tbody>
+    </table>
+}
