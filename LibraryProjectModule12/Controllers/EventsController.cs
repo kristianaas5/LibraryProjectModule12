@@ -195,7 +195,7 @@ public class EventsController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EventUser(EventUserViewModel model)
+    public async Task<IActionResult> EventUser(EventViewModel model)
     {
         // СТЪПКА 1: Валидация на модела
         //if (!ModelState.IsValid)
@@ -204,7 +204,7 @@ public class EventsController : Controller
         }
 
         // СТЪПКА 2: Намиране на събитието
-        var eventItem = await _context.EventUsers.FindAsync(model.Id);
+        var eventItem = await _context.Events.FindAsync(model.Id);
 
         if (eventItem == null)
         {
@@ -223,7 +223,7 @@ public class EventsController : Controller
         var order = new EventUser
         {
             Id = Guid.NewGuid(),
-            //EventId = model.eventId,
+            EventId = model.Id,
             UserId = userId,        
         };
 
