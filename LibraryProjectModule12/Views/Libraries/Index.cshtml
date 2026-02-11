@@ -118,3 +118,28 @@
         else { <p class="text-muted">No books awaiting review.</p> }
     </div>
 </div>
+
+@if (TempData["Success"] is string successMsg)
+{
+    <div class="alert alert-success d-flex justify-content-between align-items-center">
+        <span>@successMsg</span>
+        <span class="ms-3">
+            @if (TempData["UndoLibraryId"] is int undoLibId)
+            {
+                <form asp-controller="Libraries" asp-action="Restore" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@undoLibId" />
+                    <button type="submit" class="btn btn-sm btn-outline-dark">Undo</button>
+                </form>
+            }
+            @if (TempData["UndoReviewId"] is int undoReviewId)
+            {
+                <form asp-controller="Reviews" asp-action="Restore" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@undoReviewId" />
+                    <button type="submit" class="btn btn-sm btn-outline-dark">Undo</button>
+                </form>
+            }
+        </span>
+    </div>
+}

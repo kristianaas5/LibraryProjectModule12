@@ -108,6 +108,10 @@ namespace LibraryProjectModule12.Controllers
 
             genre.IsDeleted = true;
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Genre deleted.";
+            TempData["UndoGenreId"] = id;
+
             return RedirectToAction(nameof(Index));
         }
 

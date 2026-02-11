@@ -1,0 +1,49 @@
+@model LibraryProjectModule12.Models.Review
+
+@{
+    ViewData["Title"] = "Add Review";
+    var library = ViewBag.Library as LibraryProjectModule12.Models.Library;
+}
+
+<h1>Add Review</h1>
+
+@if (library != null)
+{
+    <div class="alert alert-secondary">
+        <strong>@library.Book?.Name</strong> (@library.Book?.Year)
+        <div class="text-muted">by @library.Book?.Author?.LastName, @library.Book?.Author?.Name</div>
+    </div>
+}
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="LibraryId" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Rating" class="form-label"></label>
+        <select asp-for="Rating" class="form-select">
+            <option value="">-- Select Rating --</option>
+            <option value="1">1 - Poor</option>
+            <option value="2">2 - Fair</option>
+            <option value="3">3 - Good</option>
+            <option value="4">4 - Very Good</option>
+            <option value="5">5 - Excellent</option>
+        </select>
+        <span asp-validation-for="Rating" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ReviewText" class="form-label"></label>
+        <textarea asp-for="ReviewText" class="form-control" rows="4" maxlength="2048"></textarea>
+        <span asp-validation-for="ReviewText" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Add Review</button>
+    <a asp-controller="Libraries" asp-action="Index" class="btn btn-secondary">Back to My Library</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

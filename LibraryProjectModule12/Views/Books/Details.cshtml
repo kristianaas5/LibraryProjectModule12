@@ -29,7 +29,8 @@
         <div class="mt-3 d-flex gap-2">
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 
-            @if (User.Identity?.IsAuthenticated == true)
+            @* Show Add to My Library only for authenticated NON-Admin users *@
+            @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
             {
                 <form asp-controller="Libraries" asp-action="AddFromBook" method="post" class="d-inline">
                     @Html.AntiForgeryToken()

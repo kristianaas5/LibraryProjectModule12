@@ -19,23 +19,12 @@
             <dd class="col-sm-9">@Model.Country</dd>
         </dl>
 
-        <h5>Books</h5>
-        @if (Model.Books != null && Model.Books.Any())
-        {
-            <ul>
-                @foreach (var b in Model.Books)
-                {
-                    <li>@b.Name (@b.Year)</li>
-                }
-            </ul>
-        }
-        else
-        {
-            <p class="text-muted">No books recorded.</p>
-        }
-
         <div class="mt-3">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+            }
             <a asp-action="Index" class="btn btn-secondary">Back to List</a>
         </div>
     </div>

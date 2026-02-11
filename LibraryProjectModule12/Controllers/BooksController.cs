@@ -158,8 +158,12 @@ namespace LibraryProjectModule12.Controllers
             var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
             if (book == null) return NotFound();
 
-            book.IsDeleted = true; // soft-delete
+            book.IsDeleted = true;
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Book deleted.";
+            TempData["UndoBookId"] = id;
+
             return RedirectToAction(nameof(Index));
         }
 

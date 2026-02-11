@@ -33,7 +33,9 @@
             <td>@item.Genre?.Name</td>
             <td class="text-nowrap">
                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
-                @if (User.Identity?.IsAuthenticated == true)
+
+                @* Show Add to My Library only for authenticated NON-Admin users *@
+                @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
                 {
                     <form asp-controller="Libraries" asp-action="AddFromBook" method="post" class="d-inline">
                         @Html.AntiForgeryToken()
@@ -42,6 +44,7 @@
                         <button type="submit" class="btn btn-sm btn-success">Add to My Library</button>
                     </form>
                 }
+
                 @if (User.IsInRole("Admin"))
                 {
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>

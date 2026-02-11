@@ -130,7 +130,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Authors");
+                    b.ToTable("Authors", (string)null);
                 });
 
             modelBuilder.Entity("LibraryProjectModule12.Models.Book", b =>
@@ -169,7 +169,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("Books");
+                    b.ToTable("Books", (string)null);
                 });
 
             modelBuilder.Entity("LibraryProjectModule12.Models.Event", b =>
@@ -198,7 +198,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("LibraryProjectModule12.Models.EventUser", b =>
@@ -223,7 +223,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("EventUsers");
+                    b.ToTable("EventUsers", (string)null);
                 });
 
             modelBuilder.Entity("LibraryProjectModule12.Models.Genre", b =>
@@ -249,7 +249,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genres");
+                    b.ToTable("Genres", (string)null);
                 });
 
             modelBuilder.Entity("LibraryProjectModule12.Models.Library", b =>
@@ -279,7 +279,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Libraries");
+                    b.ToTable("Libraries", (string)null);
                 });
 
             modelBuilder.Entity("LibraryProjectModule12.Models.Review", b =>
@@ -307,7 +307,7 @@ namespace LibraryProjectModule12.Data.Migrations
 
                     b.HasIndex("LibraryId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

@@ -116,6 +116,10 @@ namespace LibraryProjectModule12.Controllers
 
             author.IsDeleted = true;
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Author deleted.";
+            TempData["UndoAuthorId"] = author.Id;
+
             return RedirectToAction(nameof(Index));
         }
 
