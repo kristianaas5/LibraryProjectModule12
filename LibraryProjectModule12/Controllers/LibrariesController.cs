@@ -1,15 +1,13 @@
 using LibraryProjectModule12.Data;
 using LibraryProjectModule12.Models;
+using LibraryProjectModule12.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryProjectModule12.Controllers
 {
-    // Controller for managing Library entries (user shelves) with CRUD
-    // Uses soft-delete via IsDeleted and relies on global query filters to hide deleted rows.
-    [Authorize(Roles = "Admin")]
+    [Authorize] // require login to see personal shelves
     public class LibrariesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,172 +17,124 @@ namespace LibraryProjectModule12.Controllers
             _context = context;
         }
 
-        // Helper: populate dropdowns for User, Book, ShelfType
-        private async Task PopulateSelectionsAsync(string? selectedUserId = null, int? selectedBookId = null, ShelfType? selectedShelf = null)
-        {
-            var users = await _context.Users
-                .OrderBy(u => u.UserName)
-                .Select(u => new { u.Id, Display = string.IsNullOrEmpty(u.UserName) ? u.Email : u.UserName })
-                .ToListAsync();
-
-            var books = await _context.Books
-                .OrderBy(b => b.Name)
-                .Select(b => new { b.Id, Display = $"{b.Name} ({b.Year})" })
-                .ToListAsync();
-
-            ViewData["UserId"] = new SelectList(users, "Id", "Display", selectedUserId);
-            ViewData["BookId"] = new SelectList(books, "Id", "Display", selectedBookId);
-
-            var shelfItems = Enum.GetValues(typeof(ShelfType))
-                .Cast<ShelfType>()
-                .Select(s => new { Id = s, Name = s.ToString() })
-                .ToList();
-
-            ViewData["ShelfType"] = new SelectList(shelfItems, "Id", "Name", selectedShelf);
-        }
-
-        // GET: /Libraries
-        // List all non-deleted library entries with related user and book
-        [AllowAnonymous]
+        [AllowAnonymous] // or remove to require login for all
         public async Task<IActionResult> Index()
         {
-            var items = await _context.Libraries
+            var baseQuery = _context.Libraries
                 .Include(l => l.User)
-                .Include(l => l.Book)
-                .OrderBy(l => l.User!.UserName)
-                .ThenBy(l => l.Book!.Name)
-                .ToListAsync();
+                .Include(l => l.Book).ThenInclude(b => b.Author)
+                .Include(l => l.Book).ThenInclude(b => b.Genre)
+                .Include(l => l.Reviews);
 
-            return View(items);
+            if (User.IsInRole("Admin"))
+            {
+                // Admin sees all entries in a simple list
+                var items = await baseQuery
+                    .OrderBy(l => l.User!.UserName)
+                    .ThenBy(l => l.Book!.Name)
+                    .ToListAsync();
+
+                return View("AdminIndex", items); // Views/Libraries/AdminIndex.cshtml
+            }
+
+            // Regular user: show only their shelves grouped
+            IQueryable<Library> query = baseQuery;
+            var currentUserId = _context.Users
+                .Where(u => u.UserName == User.Identity!.Name)
+                .Select(u => u.Id)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                query = query.Where(l => l.UserId == currentUserId);
+            }
+
+            var userItems = await query.ToListAsync();
+
+            var vm = new LibraryShelvesViewModel
+            {
+                WantToRead = userItems.Where(l => l.ShelfType == ShelfType.WantToRead).OrderBy(l => l.Book!.Name).ToList(),
+                CurrentlyReading = userItems.Where(l => l.ShelfType == ShelfType.CurrentlyReading).OrderBy(l => l.Book!.Name).ToList(),
+                ReadReviewed = userItems.Where(l => l.ShelfType == ShelfType.Read && (l.Reviews?.Any() ?? false)).OrderBy(l => l.Book!.Name).ToList(),
+                ReadNotReviewed = userItems.Where(l => l.ShelfType == ShelfType.Read && !(l.Reviews?.Any() ?? false)).OrderBy(l => l.Book!.Name).ToList()
+            };
+
+            return View(vm); // Views/Libraries/Index.cshtml (current grouped shelves)
         }
 
-        // GET: /Libraries/Details/5
-        [AllowAnonymous]
-        public async Task<IActionResult> Details(int id)
+        // POST: /Libraries/AddFromBook/5?shelfType=WantToRead
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFromBook(int bookId, ShelfType shelfType = ShelfType.WantToRead)
         {
-            var library = await _context.Libraries
-                .Include(l => l.User)
+            // Resolve current user
+            var userName = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userName))
+                return Unauthorized();
+
+            var userId = await _context.Users
+                .Where(u => u.UserName == userName)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            // Validate book exists
+            var bookExists = await _context.Books.AnyAsync(b => b.Id == bookId);
+            if (!bookExists)
+            {
+                TempData["Error"] = "Selected book does not exist.";
+                return RedirectToAction("Index", "Books");
+            }
+
+            // Prevent duplicates for the same user/book
+            var alreadyExists = await _context.Libraries
+                .AnyAsync(l => l.UserId == userId && l.BookId == bookId && !l.IsDeleted);
+            if (alreadyExists)
+            {
+                TempData["Info"] = "This book is already in your library.";
+                return RedirectToAction("Details", "Books", new { id = bookId });
+            }
+
+            // Create entry
+            var entry = new Library
+            {
+                UserId = userId,
+                BookId = bookId,
+                ShelfType = shelfType,
+                IsDeleted = false
+            };
+
+            _context.Libraries.Add(entry);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Book added to your library.";
+            return RedirectToAction("Index", "Libraries");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeShelf(int id, ShelfType shelfType)
+        {
+            var entry = await _context.Libraries
                 .Include(l => l.Book)
-                .Include(l => l.Reviews)
+                .Include(l => l.User)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
-            if (library == null) return NotFound();
-            return View(library);
-        }
-
-        // GET: /Libraries/Create
-        public async Task<IActionResult> Create()
-        {
-            await PopulateSelectionsAsync();
-            return View(new Library());
-        }
-
-        // POST: /Libraries/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Library model)
-        {
-            // Basic validation: ensure referenced User and Book exist
-            if (!await _context.Users.AnyAsync(u => u.Id == model.UserId))
-                ModelState.AddModelError(nameof(model.UserId), "Selected user does not exist.");
-
-            if (!await _context.Books.AnyAsync(b => b.Id == model.BookId))
-                ModelState.AddModelError(nameof(model.BookId), "Selected book does not exist.");
-
-            if (!ModelState.IsValid)
+            if (entry == null)
             {
-                await PopulateSelectionsAsync(model.UserId, model.BookId, model.ShelfType);
-                return View(model);
-            }
-
-            _context.Libraries.Add(model);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: /Libraries/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var library = await _context.Libraries.FindAsync(id);
-            if (library == null) return NotFound();
-
-            await PopulateSelectionsAsync(library.UserId, library.BookId, library.ShelfType);
-            return View(library);
-        }
-
-        // POST: /Libraries/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Library model)
-        {
-            if (id != model.Id) return BadRequest();
-
-            if (!await _context.Users.AnyAsync(u => u.Id == model.UserId))
-                ModelState.AddModelError(nameof(model.UserId), "Selected user does not exist.");
-
-            if (!await _context.Books.AnyAsync(b => b.Id == model.BookId))
-                ModelState.AddModelError(nameof(model.BookId), "Selected book does not exist.");
-
-            if (!ModelState.IsValid)
-            {
-                await PopulateSelectionsAsync(model.UserId, model.BookId, model.ShelfType);
-                return View(model);
-            }
-
-            try
-            {
-                _context.Entry(model).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                TempData["Error"] = "Library entry not found.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                var exists = await _context.Libraries.AnyAsync(l => l.Id == id);
-                if (!exists) return NotFound();
-                throw;
-            }
-        }
 
-        // GET: /Libraries/Delete/5
-        public async Task<IActionResult> Delete(int id)
-        {
-            var library = await _context.Libraries
-                .Include(l => l.User)
-                .Include(l => l.Book)
-                .FirstOrDefaultAsync(l => l.Id == id);
-
-            if (library == null) return NotFound();
-            return View(library);
-        }
-
-        // POST: /Libraries/Delete/5
-        // Soft-delete: sets IsDeleted = true
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var library = await _context.Libraries.FirstOrDefaultAsync(l => l.Id == id);
-            if (library == null) return NotFound();
-
-            library.IsDeleted = true;
+            entry.ShelfType = shelfType;
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Shelf updated to {shelfType}.";
+            // Return to Admin view
             return RedirectToAction(nameof(Index));
-        }
-
-        // Optional: Restore soft-deleted entry
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var library = await _context.Libraries
-                .IgnoreQueryFilters()
-                .FirstOrDefaultAsync(l => l.Id == id);
-
-            if (library == null) return NotFound();
-
-            library.IsDeleted = false;
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new { id });
         }
     }
 }

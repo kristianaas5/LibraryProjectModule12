@@ -22,27 +22,13 @@ namespace LibraryProjectModule12.Controllers
         // GET: /Authors
         // List all non-deleted authors
         [AllowAnonymous]
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = 10;
-
             var query = _context.Authors
-                .OrderBy(a => a.LastName).ThenBy(a => a.Name)
-                .AsNoTracking();
+                .OrderBy(a => a.LastName).ThenBy(a => a.Name);
 
-            var total = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            var vm = new ViewModels.PagedListViewModel<Models.Author>
-            {
-                Items = items,
-                PageNumber = page,
-                PageSize = pageSize,
-                TotalItems = total
-            };
-
-            return View(vm);
+            var items = await query.ToListAsync(); // or take page/pageSize if needed
+            return View(items); // view expects IEnumerable<Author>
         }
 
         // GET: /Authors/Details/5

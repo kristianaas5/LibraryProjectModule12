@@ -20,36 +20,53 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        <!-- HOME -->
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+
+                        <!-- AUTHORS -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Authors" asp-action="Index">Authors</a>
+                        </li>
+                        <!-- GENRES -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Genres" asp-action="Index">Genres</a>
+                        </li>
+
+                        <!-- LIBRARY -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Libraries" asp-action="Index">Library</a>
+                        </li>
+                        <!-- BOOKS -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Books" asp-action="Index">Books</a>
+                        </li>
+
                             @if (User.Identity?.IsAuthenticated == true)
                             {
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button"
-                                   data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
                                     Events
                                 </a>
+
                                 <ul class="dropdown-menu">
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Events" asp-action="All">
-                                            All Events
-                                        </a>
+                                        <a class="dropdown-item" asp-controller="Events" asp-action="All">All Events</a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Events" asp-action="My">
-                                            My Events
-                                        </a>
+                                        <a class="dropdown-item" asp-controller="Events" asp-action="My">My Events</a>
                                     </li>
 
-                                    @* Create Event САМО за Admin *@
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Events" asp-action="Create">
-                                                Create Event
-                                            </a>
+                                            <a class="dropdown-item" asp-controller="Events" asp-action="Create">Create Event</a>
                                         </li>
+                                    }
+                                </ul>
+                            </li>
                                     }
                                 </ul>
                             </li>

@@ -1,0 +1,70 @@
+@model IEnumerable<LibraryProjectModule12.Models.Library>
+
+@{
+    ViewData["Title"] = "All Library Entries";
+}
+
+<h1>All Library Entries</h1>
+
+@if (TempData["Success"] is string successMsg)
+{
+    <div class="alert alert-success">@successMsg</div>
+}
+@if (TempData["Error"] is string errorMsg)
+{
+    <div class="alert alert-danger">@errorMsg</div>
+}
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Book</th>
+            <th>Author</th>
+            <th>Shelf</th>
+            <th>Change Shelf</th>
+            <th>Reviews</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>@(item.User?.UserName ?? item.User?.Email ?? "[deleted]")</td>
+            <td>@item.Book?.Name (@item.Book?.Year)</td>
+            <td>@(item.Book?.Author != null ? $"{item.Book.Author.LastName}, {item.Book.Author.Name}" : "[deleted]")</td>
+            <td>@item.ShelfType</td>
+            <td class="text-nowrap">
+                <form asp-action="ChangeShelf" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <select name="shelfType" class="form-select form-select-sm d-inline w-auto">
+                        <option value="@LibraryProjectModule12.Models.ShelfType.WantToRead"
+                                selected="@(item.ShelfType == LibraryProjectModule12.Models.ShelfType.WantToRead)">Want to Read</option>
+                        <option value="@LibraryProjectModule12.Models.ShelfType.CurrentlyReading"
+                                selected="@(item.ShelfType == LibraryProjectModule12.Models.ShelfType.CurrentlyReading)">Currently Reading</option>
+                        <option value="@LibraryProjectModule12.Models.ShelfType.Read"
+                                selected="@(item.ShelfType == LibraryProjectModule12.Models.ShelfType.Read)">Read</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Change</button>
+                </form>
+            </td>
+            <td>
+                @if (item.Reviews != null && item.Reviews.Any())
+                {
+                    <ul class="mb-0">
+                        @foreach (var r in item.Reviews)
+                        {
+                            <li>Rating: @r.Rating — @r.ReviewText</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span class="text-muted">No reviews</span>
+                }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
