@@ -1,0 +1,46 @@
+@model LibraryProjectModule12.Models.Library
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Edit Library Entry";
+}
+
+<h1>Edit Library Entry</h1>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="UserId" class="form-label"></label>
+        <select asp-for="UserId" class="form-select" asp-items="@(ViewData["UserId"] as IEnumerable<SelectListItem>)">
+            <option value="">-- Select User --</option>
+        </select>
+        <span asp-validation-for="UserId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BookId" class="form-label"></label>
+        <select asp-for="BookId" class="form-select" asp-items="@(ViewData["BookId"] as IEnumerable<SelectListItem>)">
+            <option value="">-- Select Book --</option>
+        </select>
+        <span asp-validation-for="BookId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ShelfType" class="form-label"></label>
+        <select asp-for="ShelfType" class="form-select" asp-items="@(ViewData["ShelfType"] as IEnumerable<SelectListItem>)">
+            <option value="">-- Select Shelf Type --</option>
+        </select>
+        <span asp-validation-for="ShelfType" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-warning">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

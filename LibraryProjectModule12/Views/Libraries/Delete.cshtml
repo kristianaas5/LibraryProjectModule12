@@ -1,0 +1,33 @@
+@model LibraryProjectModule12.Models.Library
+
+@{
+    ViewData["Title"] = "Delete Library Entry";
+}
+
+<h1>Delete Library Entry</h1>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this entry?
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">User</dt>
+            <dd class="col-sm-9">@((Model.User?.UserName ?? Model.User?.Email) ?? "[deleted]")</dd>
+
+            <dt class="col-sm-3">Book</dt>
+            <dd class="col-sm-9">@((Model.Book != null) ? $"{Model.Book.Name} ({Model.Book.Year})" : "[deleted]")</dd>
+
+            <dt class="col-sm-3">Shelf Type</dt>
+            <dd class="col-sm-9">@Model.ShelfType</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

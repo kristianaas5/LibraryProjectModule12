@@ -1,0 +1,43 @@
+@model LibraryProjectModule12.Models.Library
+
+@{
+    ViewData["Title"] = "Create Library Entry";
+}
+
+<h1>Create Library Entry</h1>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="UserId" class="form-label"></label>
+        <select asp-for="UserId" class="form-select" asp-items="@(ViewData["UserId"] as SelectList)">
+            <option value="">-- Select User --</option>
+        </select>
+        <span asp-validation-for="UserId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BookId" class="form-label"></label>
+        <select asp-for="BookId" class="form-select" asp-items="@(ViewData["BookId"] as SelectList)">
+            <option value="">-- Select Book --</option>
+        </select>
+        <span asp-validation-for="BookId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ShelfType" class="form-label"></label>
+        <select asp-for="ShelfType" class="form-select" asp-items="@(ViewData["ShelfType"] as SelectList)">
+            <option value="">-- Select Shelf Type --</option>
+        </select>
+        <span asp-validation-for="ShelfType" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

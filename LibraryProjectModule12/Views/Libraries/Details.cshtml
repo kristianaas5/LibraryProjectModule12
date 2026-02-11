@@ -1,0 +1,42 @@
+@model LibraryProjectModule12.Models.Library
+
+@{
+    ViewData["Title"] = "Library Details";
+}
+
+<h1>Library Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">User</dt>
+            <dd class="col-sm-9">@((Model.User?.UserName ?? Model.User?.Email) ?? "[deleted]")</dd>
+
+            <dt class="col-sm-3">Book</dt>
+            <dd class="col-sm-9">@((Model.Book != null) ? $"{Model.Book.Name} ({Model.Book.Year})" : "[deleted]")</dd>
+
+            <dt class="col-sm-3">Shelf Type</dt>
+            <dd class="col-sm-9">@Model.ShelfType</dd>
+        </dl>
+
+        <h5>Reviews</h5>
+        @if (Model.Reviews != null && Model.Reviews.Any())
+        {
+            <ul>
+                @foreach (var r in Model.Reviews)
+                {
+                    <li>Rating: @r.Rating - @r.ReviewText</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-muted">No reviews.</p>
+        }
+
+        <div class="mt-3">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
