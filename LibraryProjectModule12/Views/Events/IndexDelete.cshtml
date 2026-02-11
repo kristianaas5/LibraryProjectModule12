@@ -1,25 +1,11 @@
 ﻿@model IEnumerable<LibraryProjectModule12.ViewModels.EventViewModel>
 
 @{
-    ViewData["Title"] = "All Events";
+    ViewData["Title"] = "Deleted Events";
 }
 
-<h1>All Events</h1>
-<p>
-    @if (User.IsInRole("Admin"))
-    {
-        <a asp-action="Create" class="btn btn-primary">Add New Event</a>
-    }
-</p>
+<h1>Deleted Events</h1>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">
-        No events available at the moment.
-    </div>
-}
-else
-{
     <table class="table table-striped table-bordered">
         <thead class="table-light">
             <tr>
@@ -36,9 +22,8 @@ else
                     <td>@item.Name</td>
                     <td>@item.Description</td>
                     <td>@item.Date.ToString("dd-MMM-yy HH:mm:ss")</td>
-                    <td class ="text-nowrap">
+                    <td class="text-nowrap">
 
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
                         @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
                         {
                             <a asp-action="EventUser" asp-route-id="@item.Id" class="btn btn-sm btn-success">Participate in Event</a>
@@ -46,8 +31,7 @@ else
 
                         @if (User.IsInRole("Admin"))
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                            <a asp-action="Restore" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Undo</a>
                         }
 
                     </td>
@@ -55,4 +39,3 @@ else
             }
         </tbody>
     </table>
-}

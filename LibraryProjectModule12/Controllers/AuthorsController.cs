@@ -30,6 +30,17 @@ namespace LibraryProjectModule12.Controllers
             var items = await query.ToListAsync(); // or take page/pageSize if needed
             return View(items); // view expects IEnumerable<Author>
         }
+        // GET: /Authors/Deleted
+        public async Task<IActionResult> IndexDelete(string query)
+        {
+            var authorsQuery = _context.Authors
+                .IgnoreQueryFilters() // Include deleted authors
+                .Where(a => a.IsDeleted) // Only deleted authors
+                .OrderBy(a => a.LastName).ThenBy(a => a.Name);
+            var authors = await authorsQuery.ToListAsync();
+            return View(authors);
+        }
+
 
         // GET: /Authors/Details/5
         // Show one author by Id
@@ -122,20 +133,27 @@ namespace LibraryProjectModule12.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
-        // Optional: Undelete
-        // POST: /Authors/Restore/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(int id)
         {
+            var author = await _context.Authors.IgnoreQueryFilters() // Include deleted authors
+                .Where(a => a.IsDeleted).FirstOrDefaultAsync(a => a.Id == id);
+            if (author == null) return NotFound();
+            return View(author);
+        }
+
+        //Optional: Undelete
+        //POST: /Authors/Restore/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Restore(Author model)
+        {
             // Query filters exclude deleted; use IgnoreQueryFilters to find it.
-            var author = await _context.Authors.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == id);
+            var author = await _context.Authors.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == model.Id);
             if (author == null) return NotFound();
 
             author.IsDeleted = false;
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction(nameof(Index), new { model.Id });
         }
     }
 }

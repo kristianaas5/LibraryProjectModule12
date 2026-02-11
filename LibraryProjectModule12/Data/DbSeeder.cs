@@ -8,7 +8,7 @@ namespace LibraryProjectModule12.Data
         public static async Task SeedAuthorsAsync(ApplicationDbContext context)
         {
             if (await context.Authors.AnyAsync())
-                return; // вече има данни
+                return;
 
             var authors = new List<Author>
             {
@@ -50,6 +50,25 @@ namespace LibraryProjectModule12.Data
             };
 
             await context.Authors.AddRangeAsync(authors);
+            await context.SaveChangesAsync();
+        }
+        public static async Task SeedGenresAsync(ApplicationDbContext context)
+        {
+            if (await context.Genres.AnyAsync())
+                return;
+
+            var genres = new List<Genre>
+    {
+        new Genre { Name = "Fantasy", IsDeleted = false },
+        new Genre { Name = "Science Fiction", IsDeleted = false },
+        new Genre { Name = "Drama", IsDeleted = false },
+        new Genre { Name = "Romance", IsDeleted = false },
+        new Genre { Name = "Thriller", IsDeleted = false },
+        new Genre { Name = "Horror", IsDeleted = false },
+        new Genre { Name = "Historical", IsDeleted = false }
+    };
+
+            await context.Genres.AddRangeAsync(genres);
             await context.SaveChangesAsync();
         }
     }

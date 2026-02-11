@@ -1,0 +1,26 @@
+﻿@model LibraryProjectModule12.Models.Genre
+
+@{
+    ViewData["Title"] = "Restore Genre";
+}
+
+<h1>Restore Genre</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Name)</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Description)</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Restore" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Restore</button>
+    <a asp-action="IndexDelete" class="btn btn-secondary">Cancel</a>
+</form>

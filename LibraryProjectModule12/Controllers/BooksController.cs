@@ -48,6 +48,20 @@ namespace LibraryProjectModule12.Controllers
             return View(books);
         }
 
+        [AllowAnonymous]
+        public async Task<IActionResult> IndexDelete()
+        {
+            var books = await _context.Books.IgnoreQueryFilters() // Include deleted books
+                .Where(a => a.IsDeleted)
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
+                .OrderBy(b => b.Name)
+                .ThenBy(b => b.Year)
+                .ToListAsync();
+
+            return View(books);
+        }
+
         // GET: /Books/Details/5
         [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
@@ -167,18 +181,31 @@ namespace LibraryProjectModule12.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var book = await _context.Books.IgnoreQueryFilters() // Include deleted books
+                .Where(a => a.IsDeleted)
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (book == null) return NotFound();
+            return View(book);
+        }
+
         // Optional: Restore soft-deleted book, Admin only.
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Restore(int id)
+        public async Task<IActionResult> Restore(Book model)
         {
-            var book = await _context.Books.IgnoreQueryFilters().FirstOrDefaultAsync(b => b.Id == id);
+            var book = await _context.Books.IgnoreQueryFilters().FirstOrDefaultAsync(b => b.Id == model.Id);
             if (book == null) return NotFound();
 
             book.IsDeleted = false;
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction(nameof(Index), new { model.Id });
         }
     }
 }

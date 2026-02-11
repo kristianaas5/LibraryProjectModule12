@@ -110,13 +110,15 @@ namespace LibraryProjectModule12
                     logger.LogError(ex, "Грешка при seed на данните");
                 }
             }
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var services = scope.ServiceProvider;
-            //    var context = services.GetRequiredService<ApplicationDbContext>();
 
-            //    await DbSeeder.SeedAuthorsAsync(context);
-            //}
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<ApplicationDbContext>();
+
+                await DbSeeder.SeedAuthorsAsync(context);
+                await DbSeeder.SeedGenresAsync(context);
+            }
 
             app.Run();
         }
@@ -172,5 +174,7 @@ namespace LibraryProjectModule12
                 }
             }
         }
+
+        
     }
 }

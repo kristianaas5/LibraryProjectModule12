@@ -24,54 +24,66 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
 
-                        <!-- AUTHORS -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Authors" asp-action="Index">Authors</a>
-                        </li>
-                        <!-- GENRES -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Genres" asp-action="Index">Genres</a>
-                        </li>
+                            <!-- AUTHORS -->
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Authors" asp-action="Index">Authors</a>
+                            </li>
+                            <!-- GENRES -->
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Genres" asp-action="Index">Genres</a>
+                            </li>
 
-                        <!-- LIBRARY -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Libraries" asp-action="Index">Library</a>
-                        </li>
-                        <!-- BOOKS -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Books" asp-action="Index">Books</a>
-                        </li>
-
-                            @if (User.Identity?.IsAuthenticated == true)
-                            {
+                            <!-- LIBRARY -->
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Libraries" asp-action="Index">Library</a>
+                            </li>
+                            <!-- BOOKS -->
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Books" asp-action="Index">Books</a>
+                            </li>
+                            <!--EVENTS-->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
                                     Events
                                 </a>
-
                                 <ul class="dropdown-menu">
                                     <li>
                                         <a class="dropdown-item" asp-controller="Events" asp-action="All">All Events</a>
                                     </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Events" asp-action="My">My Events</a>
-                                    </li>
-
-                                    @if (User.IsInRole("Admin"))
+                                    @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
                                     {
-                                        <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Events" asp-action="Create">Create Event</a>
+                                            <a class="dropdown-item" asp-controller="Events" asp-action="My">My Events</a>
                                         </li>
                                     }
                                 </ul>
                             </li>
-                                    }
-                                </ul>
-                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                        Deleted Items
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Authors" asp-action="IndexDelete">Deleted Authors</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Genres" asp-action="IndexDelete">Deleted Genres</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Books" asp-action="IndexDelete">Deleted Books</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Events" asp-action="IndexDelete">Deleted Events</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
                         }
-                        
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

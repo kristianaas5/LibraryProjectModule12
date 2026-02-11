@@ -24,6 +24,16 @@ namespace LibraryProjectModule12.Controllers
                 .ToListAsync();
             return View(genres);
         }
+        [AllowAnonymous]
+         public async Task<IActionResult> IndexDelete()
+        {
+            var deletedGenres = await _context.Genres
+                .IgnoreQueryFilters()
+                .Where(g => g.IsDeleted)
+                .OrderBy(g => g.Name)
+                .ToListAsync();
+            return View(deletedGenres);
+        }
 
         // GET: /Genres/Details/5
         [AllowAnonymous]
@@ -114,19 +124,26 @@ namespace LibraryProjectModule12.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        public async Task<IActionResult> Restore(int id)
+        {
+            var genre = await _context.Genres.IgnoreQueryFilters() // Include deleted authors
+.Where(a => a.IsDeleted).FirstOrDefaultAsync(g => g.Id == id);
+            if (genre == null) return NotFound();
+            return View(genre);
+        }
 
         // Optional: Restore soft-deleted genre
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Restore(int id)
+        public async Task<IActionResult> Restore(Genre model)
         {
-            var genre = await _context.Genres.IgnoreQueryFilters().FirstOrDefaultAsync(g => g.Id == id);
+            var genre = await _context.Genres.IgnoreQueryFilters().FirstOrDefaultAsync(g => g.Id == model.Id);
             if (genre == null) return NotFound();
 
             genre.IsDeleted = false;
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction(nameof(Index), new { model.Id });
         }
     }
 }
