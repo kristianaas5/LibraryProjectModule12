@@ -1,25 +1,16 @@
 ﻿namespace LibraryProjectModule12.ViewModels;
-
 using System.ComponentModel.DataAnnotations;
 /// <summary>
-/// ViewModel за поръчка на билети
-/// Използва се в /Events/Order/{id}
+/// EventUserViewModel is a view model class that represents the association between an event and a user in the context of a library project. It contains properties for the unique identifier of the event, the foreign key for the associated user, and the name of the event. This view model is used to transfer data between the application and the user interface when displaying information about events and their associated users.
 /// </summary>
 public class EventUserViewModel
 {
-    /// <summary>
-    /// Id на събитието за което поръчваме
-    /// Hidden field във формата
-    /// </summary>
+    // The unique identifier for the event. This property is required and serves as the primary key for the event entity.
     public Guid Id { get; set; }
+    //  The foreign key for the user associated with the event. This property is required and references the ApplicationUser entity.
     public int eventId { get; set; }
+    // The foreign key for the user associated with the event. This property is required and references the ApplicationUser entity.
 
-    /// <summary>
-    /// Име на събитието (само за показване)
-    /// </summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Брой билети за поръчка
-    /// </summary>
 }

@@ -6,6 +6,18 @@ namespace LibraryProjectModule12
 {
     public class Program
     {
+        /// <summary>
+        /// The entry point of the application. Configures and starts the web application, including services,
+        /// middleware, and routing.
+        /// </summary>
+        /// <remarks>This method initializes the application by setting up the dependency injection
+        /// container, configuring authentication,  authorization, and cookie settings, and defining the HTTP request
+        /// pipeline. It also seeds initial data into the database  using the <see cref="SeedData"/> and <see
+        /// cref="DbSeeder"/> classes.  The method is asynchronous to support database seeding and other initialization
+        /// tasks that require asynchronous operations.</remarks>
+        /// <param name="args">Command-line arguments passed to the application.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -18,53 +30,53 @@ namespace LibraryProjectModule12
 
             builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
                 {
-                    // НАСТРОЙКИ ЗА ПАРОЛАТА
-                    options.Password.RequireDigit = true;       
-                    options.Password.RequireLowercase = true;       
-                    options.Password.RequireUppercase = true;       
-                    options.Password.RequireNonAlphanumeric = true; 
-                    options.Password.RequiredLength = 3;             // Минимум 3 символа
+                    // Standard password settings   
+                    options.Password.RequireDigit = true;       //Enquires at least one digit (0-9) in the password
+                    options.Password.RequireLowercase = true;       //Enquires at least one lowercase letter (a-z) in the password
+                    options.Password.RequireUppercase = true;       //Enquires at least one uppercase letter (A-Z) in the password
+                    options.Password.RequireNonAlphanumeric = true; //Enquires at least one non-alphanumeric character (e.g., !, @, #, etc.) in the password
+                    options.Password.RequiredLength = 3;            // Minimum length of the password (in this case, 3 characters)
 
-                    // НАСТРОЙКИ ЗА ПОТРЕБИТЕЛЯ
-                    options.User.RequireUniqueEmail = true;  // Email трябва да е уникален
+                    // Standard user settings
+                    options.User.RequireUniqueEmail = true;  // Email must be unique for each user
 
-                    // НАСТРОЙКИ ЗА LOCKOUT (ЗАКЛЮЧВАНЕ)
-                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                    options.Lockout.MaxFailedAccessAttempts = 5;  // След 5 грешки -> lockout
-                    options.Lockout.AllowedForNewUsers = true;
+                    // Standard lockout settings
+                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // Lockout duration of 5 minutes
+                    options.Lockout.MaxFailedAccessAttempts = 5;  // After 5 failed attempts, the user will be locked out
+                    options.Lockout.AllowedForNewUsers = true; // Lockout is enabled for new users
 
-                    // НАСТРОЙКИ ЗА SIGN IN
-                    options.SignIn.RequireConfirmedEmail = false;  // НЕ изискваме потвърден email
+                    // SignIn settings
+                    options.SignIn.RequireConfirmedEmail = false;  // Does not require email confirmation for sign-in
                 })
-                .AddRoles<IdentityRole>()  // КРИТИЧНО! Добавяме ролева поддръжка
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddRoles<IdentityRole>()  // Add support for roles in Identity
+                .AddEntityFrameworkStores<ApplicationDbContext>() // Use Entity Framework Core for storing Identity data
+                .AddDefaultTokenProviders();// Add default token providers for password reset, email confirmation, etc.
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(); // Add support for MVC controllers and views
 
-            // === COOKIE КОНФИГУРАЦИЯ ===
+            // Set up cookie settings for authentication
             builder.Services.ConfigureApplicationCookie(options =>
             {
-                // Път за Login страница
+                // Path for Login
                 options.LoginPath = "/Account/Login";
 
-                // Път за Logout
+                // Path за Logout
                 options.LogoutPath = "/Account/Logout";
 
-                // Път за AccessDenied (когато потребител няма права)
+                // Path for AccessDenied (when user tries to access a resource they don't have permission for)
                 options.AccessDeniedPath = "/Account/AccessDenied";
 
-                // Cookie настройки
-                options.Cookie.HttpOnly = true;  // Защита срещу XSS атаки
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // Само през HTTPS
-                options.Cookie.SameSite = SameSiteMode.Strict;  // CSRF защита
+                // Cookie settings for security
+                options.Cookie.HttpOnly = true;  // Secure cookie, not accessible via JavaScript
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // Only sent over HTTPS
+                options.Cookie.SameSite = SameSiteMode.Strict;  // CSRF security
 
-                // Време на валидност
-                options.ExpireTimeSpan = TimeSpan.FromHours(2);  // Cookie валиден 2 часа
-                options.SlidingExpiration = true;  // Подновява се при активност
+                // Time settings for cookie expiration and sliding expiration
+                options.ExpireTimeSpan = TimeSpan.FromHours(2);  // Cookie is valid for 2 hours
+                options.SlidingExpiration = true;  // If the user is active, the expiration time will be reset with each request
             });
 
-            var app = builder.Build();
+            var app = builder.Build();// Build the application
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -77,63 +89,75 @@ namespace LibraryProjectModule12
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseStaticFiles();
-            app.UseHttpsRedirection();
-            app.UseRouting();
+            app.UseStaticFiles(); // Enable serving static files (e.g., CSS, JavaScript, images)
+            app.UseHttpsRedirection();// Redirect HTTP requests to HTTPS for security
+            app.UseRouting();// Enable routing for the application
 
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseAuthentication();// Enable authentication middleware to handle user authentication
+            app.UseAuthorization();// Enable authorization middleware to handle user authorization
 
 
-            app.MapStaticAssets();
+            app.MapStaticAssets();// Map static assets to be served from the wwwroot folder
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
-                .WithStaticAssets();
+                .WithStaticAssets();// Map the default controller route and include static assets in the routing configuration
             app.MapRazorPages()
-               .WithStaticAssets();
+               .WithStaticAssets();// Map Razor Pages and include static assets in the routing configuration
 
-            // SEED ДАННИ - Създаване на роли и admin потребител чрез DI от клача SeedData
+            // Seed initial data into the database, including roles and an admin user, as well as authors and genres
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();// Get the UserManager service to manage user accounts
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();// Get the RoleManager service to manage roles
 
-                    await SeedData.Initialize(services, userManager, roleManager);
+                    await SeedData.Initialize(services, userManager, roleManager);// Seed initial data for roles and an admin user
                 }
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "Грешка при seed на данните");
+                    logger.LogError(ex, "Грешка при seed на данните");// Log any exceptions that occur during the seeding process
                 }
             }
 
             using (var scope = app.Services.CreateScope())
             {
-                var services = scope.ServiceProvider;
-                var context = services.GetRequiredService<ApplicationDbContext>();
+                var services = scope.ServiceProvider;// Get the ApplicationDbContext service to interact with the database
+                var context = services.GetRequiredService<ApplicationDbContext>();// Seed initial data for authors and genres in the database
 
-                await DbSeeder.SeedAuthorsAsync(context);
-                await DbSeeder.SeedGenresAsync(context);
+                await DbSeeder.SeedAuthorsAsync(context);// Seed initial data for authors in the database
+                await DbSeeder.SeedGenresAsync(context);// Seed initial data for genres in the database
+                await DbSeeder.SeedBooksAsync(context);// Seed initial data for books in the database
+                await DbSeeder.SeedEventsAsync(context);// Seed initial data for events in the database
             }
 
-            app.Run();
+            app.Run();// Start the application and listen for incoming HTTP requests
         }
         public static class SeedData
         {
+            /// <summary>
+            /// Initializes the application by creating predefined roles and an administrator account if they do not
+            /// already exist.
+            /// </summary>
+            /// <remarks>This method ensures that the roles "Admin" and "User" are created in the
+            /// system if they do not already exist. Additionally, it creates an administrator account with the email
+            /// "admin@eventures.com" and assigns it to the "Admin" role if such an account does not already exist. The
+            /// administrator account is created with the username "Admin" and the default password
+            /// "Admin123.".</remarks>
+            /// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
+            /// <param name="userManager">The <see cref="UserManager{TUser}"/> instance used to manage user accounts.</param>
+            /// <param name="roleManager">The <see cref="RoleManager{TRole}"/> instance used to manage roles.</param>
+            /// <returns></returns>
             public static async Task Initialize(
                 IServiceProvider serviceProvider,
                 UserManager<ApplicationUser> userManager,
                 RoleManager<IdentityRole> roleManager)
             {
-                // =================
-                // СЪЗДАВАНЕ НА РОЛИ
-                // =================
                 string[] roleNames = {"Admin", "User"};
-
+                // Create roles if they do not exist
                 foreach (var roleName in roleNames)
                 {
                     if (!await roleManager.RoleExistsAsync(roleName))
@@ -143,9 +167,7 @@ namespace LibraryProjectModule12
                     }
                 }
 
-                // =============================
-                // СЪЗДАВАНЕ НА ADMIN ПОТРЕБИТЕЛ
-                // =============================
+                //Create admin user
                 var adminEmail = "admin@eventures.com";
                 var adminUser = await userManager.FindByEmailAsync(adminEmail);
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryProjectModule12.Controllers
+// Controller for managing Books. Regular authenticated users can create books, but only Admins can edit or delete.
 {
     [Authorize] // Require authentication for non-read actions; Index/Details are allowed anonymously below.
     public class BooksController : Controller
@@ -36,6 +37,7 @@ namespace LibraryProjectModule12.Controllers
 
         // GET: /Books
         [AllowAnonymous]
+        // List all non-deleted books with their authors and genres, ordered by name and year.
         public async Task<IActionResult> Index()
         {
             var books = await _context.Books
@@ -48,7 +50,9 @@ namespace LibraryProjectModule12.Controllers
             return View(books);
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
+        // GET: /Books/Deleted
+        // List all soft-deleted books, Admin only.
         public async Task<IActionResult> IndexDelete()
         {
             var books = await _context.Books.IgnoreQueryFilters() // Include deleted books
@@ -64,6 +68,7 @@ namespace LibraryProjectModule12.Controllers
 
         // GET: /Books/Details/5
         [AllowAnonymous]
+        // Show details of a single book, including author and genre. Accessible to all users.
         public async Task<IActionResult> Details(int id)
         {
             var book = await _context.Books
@@ -86,6 +91,7 @@ namespace LibraryProjectModule12.Controllers
         // POST: /Books/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Regular authenticated users can add books (no Admin requirement).
         public async Task<IActionResult> Create(Book model)
         {
             // Validate foreign keys exist
@@ -118,6 +124,7 @@ namespace LibraryProjectModule12.Controllers
         }
 
         // POST: /Books/Edit/5
+        // Regular users cannot edit; only Admins.
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -151,6 +158,7 @@ namespace LibraryProjectModule12.Controllers
         }
 
         // GET: /Books/Delete/5
+        // Regular users cannot delete; only Admins. Shows confirmation page for soft deletion.
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -167,6 +175,7 @@ namespace LibraryProjectModule12.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        // Soft delete the book by setting IsDeleted to true. Admin only.
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
@@ -182,6 +191,8 @@ namespace LibraryProjectModule12.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        // GET: /Books/Restore/5
+        // Show confirmation page for restoring a soft-deleted book. Admin only.
         public async Task<IActionResult> Restore(int id)
         {
             var book = await _context.Books.IgnoreQueryFilters() // Include deleted books
@@ -193,7 +204,7 @@ namespace LibraryProjectModule12.Controllers
             if (book == null) return NotFound();
             return View(book);
         }
-
+        // POST: /Books/Restore/5
         // Optional: Restore soft-deleted book, Admin only.
         [Authorize(Roles = "Admin")]
         [HttpPost]

@@ -4,13 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LibraryProjectModule12.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    /// <summary>
+    /// ApplicationDbContext class represents the database context for the library application. It inherits from IdentityDbContext to include user authentication and authorization features. This class defines DbSet properties for each entity in the application, such as Authors, Genres, Books, Events, EventUsers, Libraries, and Reviews. It also configures the relationships between entities and applies query filters to exclude deleted records from queries. The ApplicationDbContext class is responsible for managing the database connection and providing access to the data through Entity Framework Core.
+    /// </summary>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>// The ApplicationDbContext class inherits from IdentityDbContext, which provides built-in functionality for user authentication and authorization. By specifying ApplicationUser as the generic type parameter, we are using our custom ApplicationUser class to represent users in the application. This allows us to extend the default user properties with additional fields such as Name, LastName, DateRegistrated, and IsDeleted, while still leveraging the identity features provided by ASP.NET Core Identity.
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
+            : base(options)// The constructor of the ApplicationDbContext class takes DbContextOptions as a parameter and passes it to the base constructor of IdentityDbContext. This allows us to configure the database connection and other options for the context when it is instantiated, typically in the Startup.cs file of the application. By using dependency injection, we can easily manage the lifecycle of the ApplicationDbContext and ensure that it is properly disposed of when no longer needed.
         {
 
         }
+        // DbSet properties represent the tables in the database for each entity in the application. These properties allow us to perform CRUD operations on the corresponding tables using Entity Framework Core. For example, the Authors DbSet allows us to query and manipulate author records, while the Books DbSet allows us to work with book records. Each DbSet is strongly typed to the corresponding entity class, providing compile-time checking and IntelliSense support when working with the data.
         public DbSet<Author> Authors { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Book> Books { get; set; }
@@ -19,6 +23,7 @@ namespace LibraryProjectModule12.Data
         public DbSet<Library> Libraries { get; set; }
         public DbSet<Review> Reviews { get; set; }
 
+        // The OnModelCreating method is overridden to configure the relationships between entities and apply query filters to exclude deleted records from queries. This method is called when the model for the context is being created, allowing us to define the structure of the database and how the entities relate to each other. For example, we can specify that a Book has one Author and one Genre, and that an EventUser has one User and one Event. We can also apply query filters to automatically exclude records that have been marked as deleted (IsDeleted = true) from any queries made against the context, ensuring that only active records are returned in results.
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

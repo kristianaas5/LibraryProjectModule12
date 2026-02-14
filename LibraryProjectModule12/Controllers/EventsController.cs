@@ -9,13 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-[Authorize]  // Всички actions изискват автентикация
+[Authorize]
+//Controller for managing events in the library system. It includes actions for listing all events, viewing details, creating new events, editing existing events, and deleting events. Access to certain actions is restricted based on user roles (Admin and User).
 public class EventsController : Controller
 {
-    // ====================
-    // DEPENDENCY INJECTION
-    // ====================
-
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -27,21 +24,11 @@ public class EventsController : Controller
         _userManager = userManager;
     }
 
-    // ===========================
-    // ALL EVENTS (Всички събития)
-    // ===========================
-
-    /// <summary>
-    /// GET: /Events/All
-    /// Показва всички събития в системата
-    /// Достъпно за: User и Admin
-    /// </summary>
+    //List all events (for both Admin and User)
     public async Task<IActionResult> All()
     {
-
-        // LINQ заявка за взимане на всички събития
         var events = await _context.Events
-            .OrderBy(e => e.Date)  // Сортиране 
+            .OrderBy(e => e.Date)  //Sorting by date
             .Select(e => new EventViewModel
             {
                 Id = e.Id,
@@ -51,21 +38,16 @@ public class EventsController : Controller
             })
             .ToListAsync();
 
-        // SQL който се генерира:
-        // SELECT Id, Name, Place, Start, End
-        // FROM Events
-        // ORDER BY Start
-
         return View(events);
     }
-
+    //List all deleted events (for Admin only)
+     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> IndexDelete()
     {
 
-        // LINQ заявка за взимане на всички събития
         var events = await _context.Events.IgnoreQueryFilters() // Include deleted events
             .Where(a => a.IsDeleted)
-            .OrderBy(e => e.Date)  // Сортиране 
+            .OrderBy(e => e.Date)  
             .Select(e => new EventViewModel
             {
                 Id = e.Id,
@@ -75,47 +57,25 @@ public class EventsController : Controller
             })
             .ToListAsync();
 
-        // SQL който се генерира:
-        // SELECT Id, Name, Place, Start, End
-        // FROM Events
-        // ORDER BY Start
-
         return View(events);
     }
 
-    // =========================
-    // MY EVENTS (Моите събития)
-    // =========================
-
-    /// <summary>
-    /// GET: /Events/My
-    /// Показва събития за които текущият потребител има поръчани билети
-    /// Достъпно за: User и Admin
-    /// </summary>
+    //List events that the current user has ordered (for both Admin and User)
     public async Task<IActionResult> My()
     {
-        // ───────────────────────────────────────────────────────
-        // СТЪПКА 1: Взимаме Id на текущия потребител
-        // ───────────────────────────────────────────────────────
-        var userId = _userManager.GetUserId(User);
+        
+        var userId = _userManager.GetUserId(User);// Get the current user's ID
 
-        // User - това е ClaimsPrincipal от authentication cookie
-        // GetUserId() извлича claim "sub" (subject) = UserId
-
-        // ───────────────────────────────────────────────────────
-        // СТЪПКА 2: Взимаме всички събития с поръчки от потребителя
-        // ───────────────────────────────────────────────────────
         var myEvents = await _context.EventUsers
-            .Where(o => o.UserId == userId)  // Филтрираме по потребител
-            .Include(o => o.Event)               // Eager loading на Event
-            .GroupBy(o => o.Event)               // Групираме по събитие
+            .Where(o => o.UserId == userId)  
+            .Include(o => o.Event)              
+            .GroupBy(o => o.Event)               
             .Select(g => new EventViewModel
             {
                 Id = g.Key.Id,
                 Name = g.Key.Name,
                 Description = g.Key.Description,
                 Date = g.Key.Date,
-                // Сумираме всички билети за това събитие
             })
             .OrderBy(e => e.Date)
             .ToListAsync();
@@ -124,85 +84,56 @@ public class EventsController : Controller
         return View(myEvents);
     }
 
-    // ===================================
-    // CREATE EVENT (Създаване на събитие)
-    //====================================
-    /// <summary>
-    /// GET: /Events/Create
-    /// Показва формата за създаване на ново събитие
-    /// Достъпно за: Admin САМО
-    /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]  // САМО Admin
+    [Authorize(Roles = "Admin")]  // Only Admin can access the form to create a new event
     public IActionResult Create()
     {
         return View();
     }
 
-    /// <summary>
-    /// POST: /Events/Create
-    /// Обработва създаването на ново събитие
-    /// Достъпно за: Admin САМО
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
+    // Creates a new event. It first validates the incoming model, and if it's valid, it maps the CreateEventViewModel to an Event entity, adds it to the database context, and saves the changes. After successfully creating the event, it redirects the user to the list of all events.
     public async Task<IActionResult> Create(CreateEventViewModel model)
     {
-        // СТЪПКА 1: Валидация
+        // Validation: Check if the model state is valid. If it is not, return the view with the model to display validation errors.
         if (!ModelState.IsValid)
         {
             return View(model);
         }
-
-        // СТЪПКА 2: Mapping ViewModel -> Entity
+        // Mapping the ViewModel to the Entity
         var newEvent = new Event
         {
             Name = model.Name,
             Description = model.Description,
             Date = model.Date
         };
-
-        // СТЪПКА 4: Добавяне в базата данни
+        // Adding the new event to the database context and saving changes
         _context.Events.Add(newEvent);
         await _context.SaveChangesAsync();
-
-        // SQL който се изпълнява:
-        // INSERT INTO Events (Id, Name, Place, Start, End, TotalTickets, PricePerTicket)
-        // VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6)
-
-        // СТЪПКА 5: Redirect към All Events
 
         return RedirectToAction(nameof(All));
     }
 
-    // =================================
-    // ORDER TICKETS (Поръчка на билети)
-    // =================================
-
-    /// <summary>
-    /// GET: /Events/Order/5
-    /// Показва формата за поръчка на билети
-    /// Достъпно за: User и Admin
-    /// </summary>
     [HttpGet]
+    // GET: /Events/Order/5
+    // Displays the form for ordering tickets for a specific event. It first checks if the provided event ID is null and returns a 404 Not Found if it is. Then, it attempts to find the event in the database using the provided ID. If the event does not exist, it also returns a 404 Not Found. If the event is found, it creates an EventUserViewModel with the event details and returns the view to display the order form.
     public async Task<IActionResult> EventUser(int id)
     {
-        // ВАЛИДАЦИЯ: Проверка за null id и връщане на 404
+        //Validation: Check if the event ID is null. If it is, return a 404 Not Found response.
         if (id == null)
         {
-            return NotFound();  // 404 ако id е null
+            return NotFound();  // 404 
         }
-
-        // Намиране на събитието
+        // Attempt to find the event in the database using the provided ID. If the event does not exist, return a 404 Not Found response.
         var eventItem = await _context.Events.FindAsync(id);
 
         if (eventItem == null)
         {
-            return NotFound();  // 404 ако не съществува
+            return NotFound();  // 404
         }
-
-        // Създаване на ViewModel за формата
+        // If the event is found, create an EventUserViewModel with the event details and return the view to display the order form.
         var model = new EventUserViewModel
         {
             Id = Guid.NewGuid(),
@@ -213,60 +144,43 @@ public class EventsController : Controller
         return View(model);
     }
 
-    /// <summary>
-    /// POST: /Events/Order
-    /// Обработва поръчката на билети
-    /// Достъпно за: User и Admin
-    /// </summary>
+    // POST: /Events/Order
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Handles the submission of the order form for an event. It performs several steps: validating the model, finding the event, getting the current user's ID, creating a new EventUser entity to represent the order, saving it to the database, and finally redirecting the user to their list of events.
     public async Task<IActionResult> EventUser(EventViewModel model)
     {
-        // СТЪПКА 1: Валидация на модела
-        //if (!ModelState.IsValid)
-        {
-            //return View(model); // Връщаме формата с грешки
-        }
-
-        // СТЪПКА 2: Намиране на събитието
         var eventItem = await _context.Events.FindAsync(model.Id);
-
+        //Validation: Check if the event exists. If it does not, return a 404 Not Found response.
         if (eventItem == null)
         {
             return NotFound();
         }
-
-        // СТЪПКА 3: Взимане на текущия потребител
+        // Get the current user's ID using the UserManager. If the user is not authenticated, return a Challenge result to prompt for authentication.
         var userId = _userManager.GetUserId(User);
 
         if (string.IsNullOrEmpty(userId))
         {
-            return Challenge();  // Redirect към Login
+            return Challenge();  // Prompt for authentication if the user is not authenticated
         }
-
-        // СТЪПКА 5: Създаване на нова поръчка
+        // Create a new EventUser entity to represent the order, associating the current user with the selected event. Add this entity to the database context and save the changes to persist the order in the database.
         var order = new EventUser
         {
             Id = Guid.NewGuid(),
             EventId = model.Id,
             UserId = userId,
         };
+        // Add the new order to the database context and save changes
 
-        // СТЪПКА 6: Записване в базата данни
         _context.EventUsers.Add(order);
         await _context.SaveChangesAsync();
 
-        // SQL-а който се изпълнява:
-        // INSERT INTO Orders (Id, EventId, CustomerId, TicketsCount, OrderedOn)
-        // VALUES (@p0, @p1, @p2, @p3, @p4)
-
-
-        // СТЪПКА 7: Redirect към My Events
         return RedirectToAction(nameof(My));
     }
 
     // GET: /Books/Details/5
     [AllowAnonymous]
+    // Displays the details of a specific event. It first attempts to find the event in the database using the provided ID. If the event does not exist, it returns a 404 Not Found response. If the event is found, it creates an EventViewModel with the event details and returns the view to display the information.
     public async Task<IActionResult> Details(int id)
     {
         var _event = await _context.Events
@@ -286,6 +200,8 @@ public class EventsController : Controller
     }
 
     [Authorize(Roles = "Admin")]
+    // GET: /Books/Edit/5
+    // Displays the form for editing an existing event. It first attempts to find the event in the database using the provided ID. If the event does not exist, it returns a 404 Not Found response. If the event is found, it creates an EventViewModel with the event details and returns the view to display the edit form.
     public async Task<IActionResult> Edit(int id)
     {
         var _event = await _context.Events.FindAsync(id);
@@ -304,15 +220,16 @@ public class EventsController : Controller
     [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Handles the submission of the edit form for an existing event. It first checks if the provided ID matches the ID of the event in the model. If they do not match, it returns a BadRequest response. Then, it validates the model state, and if it is not valid, it returns the view with the model to display validation errors. If the model is valid, it updates the event in the database context and saves the changes. If a concurrency exception occurs during saving, it checks if the event still exists in the database; if it does not exist, it returns a 404 Not Found response. If it does exist, it rethrows the exception.
     public async Task<IActionResult> Edit(int id, Event model)
     {
         if (id != model.Id) return BadRequest();
 
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return View(model);// Return the view with the model to display validation errors if the model state is not valid.
         }
-
+        // Update the event in the database context and save changes. If a concurrency exception occurs, check if the event still exists; if it does not, return a 404 Not Found response. If it does exist, rethrow the exception.
         try
         {
             _context.Entry(model).State = EntityState.Modified;
@@ -329,11 +246,13 @@ public class EventsController : Controller
 
     // GET: /Books/Delete/5
     [Authorize(Roles = "Admin")]
+    // Displays the confirmation page for deleting an event. It first attempts to find the event in the database using the provided ID. If the event does not exist, it returns a 404 Not Found response. If the event is found, it creates an EventViewModel with the event details and returns the view to display the delete confirmation.
     public async Task<IActionResult> Delete(int id)
     {
+        // Attempt to find the event in the database using the provided ID. If the event does not exist, return a 404 Not Found response.
         var _event = await _context.Events
             .FirstOrDefaultAsync(b => b.Id == id);
-
+        //Validation: Check if the event exists. If it does not, return a 404 Not Found response.
         if (_event == null) return NotFound();
         var model = new EventViewModel
         {
@@ -349,6 +268,7 @@ public class EventsController : Controller
     [Authorize(Roles = "Admin")]
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    // Handles the confirmation of deleting an event. It first attempts to find the event in the database using the provided ID. If the event does not exist, it returns a 404 Not Found response. If the event is found, it marks the event as deleted by setting its IsDeleted property to true and saves the changes to the database. After successfully marking the event as deleted, it sets a success message in TempData and redirects the user to the list of all events.
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var _event = await _context.Events.FirstOrDefaultAsync(b => b.Id == id);
@@ -364,10 +284,12 @@ public class EventsController : Controller
     }
 
     [Authorize(Roles = "Admin")]
+    // GET: /Books/Restore/5
+    // Displays the confirmation page for restoring a soft-deleted event. It first attempts to find the event in the database, including those that are marked as deleted, using the provided ID. If the event does not exist or is not marked as deleted, it returns a 404 Not Found response. If the event is found and is marked as deleted, it creates an EventViewModel with the event details and returns the view to display the restore confirmation.
     public async Task<IActionResult> Restore(int id)
     {
         var _event = await _context.Events.IgnoreQueryFilters() // Include deleted events
-.Where(a => a.IsDeleted)
+            .Where(a => a.IsDeleted)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (_event == null) return NotFound();
@@ -381,11 +303,11 @@ public class EventsController : Controller
         return View(model);
     }
 
-
-        // Optional: Restore soft-deleted event
-        [Authorize(Roles = "Admin")]
+    // Optional: Restore soft-deleted event
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Handles the confirmation of restoring a soft-deleted event. It first attempts to find the event in the database, including those that are marked as deleted, using the provided ID. If the event does not exist, it returns a 404 Not Found response. If the event is found, it marks the event as not deleted by setting its IsDeleted property to false and saves the changes to the database. After successfully restoring the event, it redirects the user to the list of all events.
     public async Task<IActionResult> Restore(Event model)
     {
         var _event = await _context.Events.IgnoreQueryFilters().FirstOrDefaultAsync(b => b.Id == model.Id);

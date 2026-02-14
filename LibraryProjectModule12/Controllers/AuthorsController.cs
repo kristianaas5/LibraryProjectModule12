@@ -50,7 +50,7 @@ namespace LibraryProjectModule12.Controllers
             var author = await _context.Authors
                 .Include(a => a.Books)
                 .FirstOrDefaultAsync(a => a.Id == id);
-
+            // If the author is not found (either doesn't exist or is deleted), return 404 Not Found.
             if (author == null) return NotFound();
             return View(author);
         }
@@ -79,8 +79,8 @@ namespace LibraryProjectModule12.Controllers
         // Render edit form
         public async Task<IActionResult> Edit(int id)
         {
-            var author = await _context.Authors.FindAsync(id);
-            if (author == null) return NotFound();
+            var author = await _context.Authors.FindAsync(id);// Query filters exclude deleted, so this will return null if the author is deleted.
+            if (author == null) return NotFound();// If the author is not found (either doesn't exist or is deleted), return 404 Not Found.
             return View(author);
         }
 
@@ -90,9 +90,9 @@ namespace LibraryProjectModule12.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Author model)
         {
-            if (id != model.Id) return BadRequest();
-            if (!ModelState.IsValid) return View(model);
-
+            if (id != model.Id) return BadRequest();// Id in URL must match Id in form data
+            if (!ModelState.IsValid) return View(model);// If the model state is invalid, return the view with the model to display validation errors.
+            
             try
             {
                 _context.Entry(model).State = EntityState.Modified;
@@ -111,8 +111,8 @@ namespace LibraryProjectModule12.Controllers
         // Confirm delete (soft-delete)
         public async Task<IActionResult> Delete(int id)
         {
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null) return NotFound();
+            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);// Query filters exclude deleted, so this will return null if the author is deleted.
+            if (author == null) return NotFound();// If the author is not found (either doesn't exist or is deleted), return 404 Not Found.
             return View(author);
         }
 
@@ -122,22 +122,25 @@ namespace LibraryProjectModule12.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Query filters exclude deleted; this will return null if the author is already deleted.
             var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
             if (author == null) return NotFound();
-
+            // Soft-delete by setting IsDeleted to true. The author will be excluded from normal queries due to the global query filter.
             author.IsDeleted = true;
             await _context.SaveChangesAsync();
-
+            // Optionally, you could store the deleted author's ID in TempData to allow for an "Undo" feature.
             TempData["Success"] = "Author deleted.";
             TempData["UndoAuthorId"] = author.Id;
 
             return RedirectToAction(nameof(Index));
         }
+        // GET: /Authors/Restore/5
+        // Render restore confirmation for a deleted author
         public async Task<IActionResult> Restore(int id)
         {
             var author = await _context.Authors.IgnoreQueryFilters() // Include deleted authors
                 .Where(a => a.IsDeleted).FirstOrDefaultAsync(a => a.Id == id);
-            if (author == null) return NotFound();
+            if (author == null) return NotFound();// If the author is not found (either doesn't exist or is not deleted), return 404 Not Found.
             return View(author);
         }
 
