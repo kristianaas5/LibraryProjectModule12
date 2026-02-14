@@ -289,7 +289,7 @@ public class EventsController : Controller
     public async Task<IActionResult> Restore(int id)
     {
         var _event = await _context.Events.IgnoreQueryFilters() // Include deleted events
-            .Where(a => a.IsDeleted)
+        .Where(a => a.IsDeleted)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (_event == null) return NotFound();
