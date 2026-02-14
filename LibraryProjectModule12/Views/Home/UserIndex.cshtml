@@ -6,3 +6,35 @@
     <h1>Welcome, @User.Identity.Name!</h1>
     <p>Librarians wishes you an exciting experience.</p>
 </div>
+
+
+
+<div class="row text-center g-3">
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Browse Books</h5>
+                <p class="card-text">Discover titles, reviews, and authors.</p>
+                <a class="btn btn-primary" asp-controller="Books" asp-action="Index">Explore Books</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Genres</h5>
+                <p class="card-text">Find your next favorite category.</p>
+                <a class="btn btn-primary" asp-controller="Genres" asp-action="Index">View Genres</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Libraries</h5>
+                <p class="card-text">See library locations and shelves.</p>
+                <a class="btn btn-primary" asp-controller="Libraries" asp-action="Index">Browse Libraries</a>
+            </div>
+        </div>
+    </div>
+</div>

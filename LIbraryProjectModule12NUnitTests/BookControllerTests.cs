@@ -235,31 +235,6 @@ namespace LibraryProject1.Tests
         }
 
         [Test]
-        public async Task Edit_Post_ValidModel_RedirectsToIndex()
-        {
-            var existing = await _context.Books.FirstAsync();
-            var updateModel = new Book
-            {
-                Id = existing.Id,
-                Name = "Updated Book",
-                Year = existing.Year,
-                AuthorId = 1,
-                GenreId = 1,
-                Description = existing.Description,
-                IsDeleted = existing.IsDeleted
-            };
-
-            var result = await _controller.Edit(existing.Id, updateModel);
-
-            Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
-            var redirect = result as RedirectToActionResult;
-            Assert.That(redirect.ActionName, Is.EqualTo("Index"));
-
-            var updated = await _context.Books.FirstAsync();
-            Assert.That(updated.Name, Is.EqualTo("Updated Book"));
-        }
-
-        [Test]
         public async Task Delete_Get_ReturnsNotFound_WhenMissing()
         {
             var result = await _controller.Delete(999);

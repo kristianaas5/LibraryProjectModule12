@@ -1,8 +1,34 @@
 ﻿@{
-    ViewData["Title"] = "Home Page1";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
+<div class="text-center my-5">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p class="lead">✨ Cozy corners, favorite books, and a little magic—happy reading! ✨</p>
+</div>
+
+<div class="row justify-content-center mb-4">
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        <div class="col-auto">
+            <a class="btn btn-primary btn-lg me-2" asp-controller="Account" asp-action="Login">Log in</a>
+            <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Register">Sign up</a>
+        </div>
+    }
+    else
+    {
+        <div class="col-auto">
+            <span class="me-3">Hello, @User.Identity?.Name!</span>
+            <a class="btn btn-secondary me-2" asp-controller="Account" asp-action="Profile">Profile</a>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger">Log out</button>
+            </form>
+        </div>
+    }
+</div>
+
+<hr />
+
+<div class="mt-5 text-center">
+    <small class="text-muted">Tip: Log in or sign up to explore more sections.</small>
 </div>
